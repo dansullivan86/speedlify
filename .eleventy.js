@@ -2,8 +2,13 @@ const prettyBytes = require("pretty-bytes");
 const shortHash = require("short-hash");
 const lodash = require("lodash");
 
-function showDigits(num, digits = 2) {
-	return parseFloat(num).toFixed(digits);
+function showDigits(num, digits = 2, alwaysShowDigits = true) {
+	let toNum = parseFloat(num);
+	if(!alwaysShowDigits && toNum === Math.floor(toNum)) {
+		// if a whole number like 0, just show 0 and not 0.00
+		return toNum;
+	}
+	return toNum.toFixed(digits);
 }
 
 module.exports = function(eleventyConfig) {
@@ -43,9 +48,13 @@ module.exports = function(eleventyConfig) {
 		return url;
 	});
 
+	eleventyConfig.addFilter("showDigits", function(num, digits) {
+		return showDigits(num, digits, false);
+	});
+
 	eleventyConfig.addFilter("displayTime", function(time) {
 		let num = parseFloat(time);
-		if(num > 1000) {
+		if(num > 850) {
 			return `${showDigits(num / 1000, 2)}s`;
 		}
 		return `${showDigits(num, 0)}ms`;
@@ -62,7 +71,7 @@ module.exports = function(eleventyConfig) {
 		let months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 		let date = new Date(timestamp);
 		let day = `${months[date.getMonth()]} ${pad(date.getDate())}`;
-		return `${day} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+		return `${day} <span class="leaderboard-hide-md">${pad(date.getHours())}:${pad(date.getMinutes())}</span>`;
 	});
 
 	function mapProp(prop, targetObj) {
